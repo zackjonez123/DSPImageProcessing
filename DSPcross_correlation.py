@@ -9,6 +9,8 @@ import cv2
 import os
 import edges
 
+from matplotlib import pyplot as plt
+
 def cross_corr(in_image, kernel):
     # Array of cross-correltation
     corr_arr = []
@@ -92,54 +94,96 @@ def evaluation_filter(in_path, test_path):
     results = [in_stats, test_stats]
     return results
     
+def original(path):
+    dir_list = os.listdir(path)
+    maxs = []
+    # Run stats on input images
+    for i in range(len(dir_list)):
+        img = cv2.imread(path+"\\"+dir_list[i])
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        corr_type = cross_corr(gray, gray)
+        corr_max = n.max(corr_type) / 1000
+        maxs.append(corr_max)
+    return maxs   
+
+def filtered(path, kernel):
+    dir_list = os.listdir(path)
+    maxs = []
+    # Run stats on input images
+    for i in range(len(dir_list)):
+        img = cv2.imread(path+"\\"+dir_list[i])
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        corr_type = filter_cross_corr(gray, kernel)
+        corr_max = n.max(corr_type) / 1000
+        maxs.append(corr_max)
+    return maxs  
+
+def edge(path, kernel):
+    dir_list = os.listdir(path)
+    maxs = []
+    # Run stats on input images
+    for i in range(len(dir_list)):
+        img = cv2.imread(path+"\\"+dir_list[i])
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        in_edge = edges.canny(gray)
+        fil_edge = edges.canny(kernel)
+        fil_edge_corr = filter_cross_corr(in_edge, fil_edge)
+        fil_edge_max = n.max(fil_edge_corr) / 1000
+        maxs.append(fil_edge_max)
+    return maxs  
+
 def main():
-    # For cross-correlating one full-sized image on top of another full-sized image
-    # "in_path" is for images of the expected (friendly) person in the doorway
-    # "test_path" is for images of different people in the doorway
 
-    # in_path = "C:\\Users\\kelly\\Desktop\\IDEs and Sims\\IntruderDef\\pics\\zackv2"
-    # test_path = "C:\\Users\\kelly\\Desktop\\IDEs and Sims\\IntruderDef\\pics\\test"
-
-    # Original vs Original correlation
-    in_path = "C:\\Users\\kelly\\Desktop\\IDEs and Sims\\IntruderDef\\DSPImageProcessing\\lena.jpg"
-    test_path = "C:\\Users\\kelly\\Desktop\\IDEs and Sims\\IntruderDef\\DSPImageProcessing\\lena_crop.jpg"
-    in_image = cv2.imread(in_path)
-    gray_image = cv2.cvtColor(in_image, cv2.COLOR_BGR2GRAY)
-    corr_type = cross_corr(gray_image, gray_image)
-    corr_max = n.max(corr_type)
-    # print(corr_max)
-    # # Original vs cropped Original correlation
-    crop_img = cv2.imread(test_path)
-    kernel = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
-    fil_corr = filter_cross_corr(gray_image, kernel)
-    fil_max = n.max(fil_corr)
-    # print(fil_max)
-    # Filtered + Edge Detection
-    # print(n.shape(gray_image))
-    # print(n.shape(kernel))
-    in_edge = edges.canny(gray_image)
-    fil_edge = edges.canny(kernel)
-    fil_edge_corr = filter_cross_corr(in_edge, fil_edge)
-    fil_edge_max = n.max(fil_edge_corr)
-    print(fil_edge_max)
-    # # "Friendly" occupant vs. "Friendly" occupant
-    # y = evaluation(in_path, in_path)
-    # print("Friendly Occupant vs. Friendly occupant")
-    # print("The maximum cross-correlation = ", y[0], "The minimum cross-correlation = ", y[1])
-
-    # "Friendly" occupant vs. "Hostile" occupant
-    # x = evaluation(in_path, test_path)
-    # print("Friendly Occupant vs. Hostile occupant")
-    # print("The maximum cross-correlation = ", x[0], "The minimum cross-correlation = ", x[1])
-
-    # Repeat for filter image
+    # Paths to images
+    in_path = "C:\\Users\\kelly\\Desktop\\IDEs and Sims\\IntruderDef\\pics\\classes\\croppedOccupied"
+    test_path = "C:\\Users\\kelly\\Desktop\\IDEs and Sims\\IntruderDef\\pics\\testcrop"
+    kpath = "C:\\Users\\kelly\\Desktop\\IDEs and Sims\\IntruderDef\\pics\\filters\\filter1.jpg"
     
+    x = original(in_path) # Full-size original correlation
+    fil = cv2.imread(kpath) # Read filter image
+    kernel = cv2.cvtColor(fil, cv2.COLOR_BGR2GRAY) # Convert filter image to grayscale
+    y = filtered(in_path, kernel) # Filter correlation with original images
+    z = edge(in_path, kernel) # Edge correlation with filter and original images
+    w = filtered(test_path, kernel) # Filter correlation of test images
+    v = edge(test_path, kernel) # Edge correlation with filter and test images
+
+    # Create 100 sample points for the 100 images of each case
+    n = []
+    for i in list(range(1, 101)):
+        n.append(i)
+
+    #plot the maxes of 100 images
+    p1 = plt.scatter(n, x, c='r')
+    plt.title('Original')
+    plt.xlabel('Sample (n)')
+    plt.ylabel('Max Correlation')
+    plt.savefig('original.png')
+
+    p2 = plt.scatter(n, y, c='r')
+    plt.title('Filtered Original')
+    plt.xlabel('Sample (n)')
+    plt.ylabel('Max Correlation')
+    plt.savefig('filtered.png')
+
+    p3 = plt.scatter(n, z, c='r')
+    plt.title('Edged Original')
+    plt.xlabel('Sample (n)')
+    plt.ylabel('Max Correlation')
+    plt.savefig('edge.png')
+
+    p4 = plt.scatter(n, w, c='r')
+    plt.title('Filtered Test')
+    plt.xlabel('Sample (n)')
+    plt.ylabel('Max Correlation')
+    plt.savefig('filtered_test.png')
+
+    p5 = plt.scatter(n, v, c='r')
+    plt.title('Edged Test')
+    plt.xlabel('Sample (n)')
+    plt.ylabel('Max Correlation')
+    plt.savefig('edge_test.png')
 
 
-    # path1 = "C:\\Users\\kelly\\Desktop\\IDEs and Sims\\IntruderDef\\pics\\zackv2\\zackdark11.jpg"
-    # img = cv2.imread(path1)
-    # result = cross_corr(img, img)
-    # print(result)
-
+    
 if __name__ == '__main__':
     main()
