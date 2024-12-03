@@ -50,50 +50,6 @@ def filter_cross_corr(in_image, kernel):
 
     return fil_corr_arr
 
-def stats(corr_type):
-    #print(conv1)
-    max1 = n.max(corr_type)
-    stats = max1
-    return stats
-
-def evaluation(in_path, test_path):
-    dir_list1 = os.listdir(in_path)
-    dir_list2 = os.listdir(test_path)
-    inp_maxs = []
-
-    # Run stats on input images
-    for j in range(len(dir_list1)):
-        for i in range(len(dir_list2)):
-            in_img = cv2.imread(in_path+"\\"+dir_list1[j])
-            test_img = cv2.imread(in_path+"\\"+dir_list2[i])
-            corr_type = cross_corr(in_img, test_img)
-            x = stats(corr_type)
-            inp_maxs.append(x) # Appends max correlation
-    
-    in_stats = n.max(inp_maxs) 
-    test_stats = n.min(inp_maxs) # Takes the minimum of the max correlation results
-    results = [in_stats, test_stats]
-    return results
-
-def evaluation_filter(in_path, test_path):
-    dir_list1 = os.listdir(in_path)
-    dir_list2 = os.listdir(test_path)
-    inp_maxs = []
-
-    # Run stats on input images
-    for j in range(len(dir_list1)):
-        for i in range(len(dir_list2)):
-            in_img = cv2.imread(in_path+"\\"+dir_list1[j])
-            test_img = cv2.imread(in_path+"\\"+dir_list2[i])
-            corr_type = filter_cross_corr(in_img, test_img)
-            x = stats(corr_type)
-            inp_maxs.append(x) # Appends max correlation
-    
-    in_stats = n.max(inp_maxs) 
-    test_stats = n.min(inp_maxs) # Takes the minimum of the max correlation results
-    results = [in_stats, test_stats]
-    return results
-    
 def original(path):
     dir_list = os.listdir(path)
     maxs = []
@@ -136,7 +92,7 @@ def main():
 
     # Paths to images
     in_path = "C:\\Users\\kelly\\Desktop\\IDEs and Sims\\IntruderDef\\pics\\classes\\croppedOccupied"
-    test_path = "C:\\Users\\kelly\\Desktop\\IDEs and Sims\\IntruderDef\\pics\\testcrop"
+    test_path = "C:\\Users\\kelly\\Desktop\\IDEs and Sims\\IntruderDef\\pics\\testcrop\\coleog"
     kpath = "C:\\Users\\kelly\\Desktop\\IDEs and Sims\\IntruderDef\\pics\\filters\\filter1.jpg"
     
     x = original(in_path) # Full-size original correlation
@@ -148,42 +104,51 @@ def main():
     v = edge(test_path, kernel) # Edge correlation with filter and test images
 
     # Create 100 sample points for the 100 images of each case
-    n = []
+    N = []
     for i in list(range(1, 101)):
-        n.append(i)
+        N.append(i)
 
     #plot the maxes of 100 images
-    p1 = plt.scatter(n, x, c='r')
-    plt.title('Original')
+    p1 = plt.scatter(N, x, c='r')
+    plt.title('Friendly: No Filter')
     plt.xlabel('Sample (n)')
     plt.ylabel('Max Correlation')
     plt.savefig('original.png')
 
-    p2 = plt.scatter(n, y, c='r')
-    plt.title('Filtered Original')
+    p2 = plt.scatter(N, y, c='r')
+    plt.title('Friendly: With Filter')
     plt.xlabel('Sample (n)')
     plt.ylabel('Max Correlation')
     plt.savefig('filtered.png')
 
-    p3 = plt.scatter(n, z, c='r')
-    plt.title('Edged Original')
+    p3 = plt.scatter(N, z, c='r')
+    plt.title('Friendly: Filter w/ Edge Detection')
     plt.xlabel('Sample (n)')
     plt.ylabel('Max Correlation')
     plt.savefig('edge.png')
 
-    p4 = plt.scatter(n, w, c='r')
-    plt.title('Filtered Test')
+    p4 = plt.scatter(N, w, c='r')
+    plt.title('Hostile: With Filter')
     plt.xlabel('Sample (n)')
     plt.ylabel('Max Correlation')
     plt.savefig('filtered_test.png')
 
-    p5 = plt.scatter(n, v, c='r')
-    plt.title('Edged Test')
+    p5 = plt.scatter(N, v, c='r')
+    plt.title('Hostile: Filter w/ Edge Detection')
     plt.xlabel('Sample (n)')
     plt.ylabel('Max Correlation')
     plt.savefig('edge_test.png')
 
+    # Setting threshold
+    print("Filter: Friendly max", n.max(y))
+    print("Filter: Friendly min", n.min(y))
+    print("Filter: Hostile max", n.max(w))
+    print("Filter: Hostile min", n.min(w))
 
+    print("Filter w/ Edge: Friendly max", n.max(z))
+    print("Filter w/ Edge: Friendly min", n.min(z))
+    print("Filter w/ Edge: Hostile max", n.max(v))
+    print("Filter w/ Edge: Hostile min", n.min(v))
     
 if __name__ == '__main__':
     main()
