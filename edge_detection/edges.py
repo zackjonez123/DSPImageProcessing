@@ -1,12 +1,30 @@
 import numpy as np
 from scipy import ndimage as im
 
+"""
+Implements gaussian blur on an image with a 5x5 kernel.
+
+Args:
+    img (np.array): The image to blur
+
+Returns:
+    np.array: The blurred image
+"""
 def g_blur(img):
     #g_kernel = np.array([[1, 2, 1], [2, 4, 2], [1, 2, 1]]) / 16
     g_kernel = np.array([[2,4,5,4,2],[4,9,12,9,4],[5,12,15,12,5],[4,9,12,9,4],[2,4,5,4,2]]) / 159
 
     return im.convolve(img, g_kernel)
 
+"""
+Implements sobel edge detection on an image.
+
+Args:
+    img (np.array): The image to detect edges on
+
+Returns:
+    tuple: A tuple containing the magnitude and direction of the edges
+"""
 def sobel(img):
     K_x = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
     K_y = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
@@ -30,6 +48,16 @@ def sobel(img):
 
     return (mag, sobel_dir)
 
+"""
+Implements non-maximum suppression on an image. This is used to thin the edges by removing pixels that are not part of the edge.
+
+Args:
+    sobel (np.array): The magnitude of the edges
+    sobel_dir (np.array): The direction of the edges
+
+Returns:
+    np.array: The thinned edges
+"""
 def non_max_suppression(sobel, sobel_dir):
     M, N = sobel.shape
     Z = np.zeros((M,N))
@@ -52,6 +80,17 @@ def non_max_suppression(sobel, sobel_dir):
 
     return Z
 
+"""
+Implements thresholding on an image. This is used to remove weak edges and keep strong edges.
+
+Args:
+    img (np.array): The image to threshold
+    low_threshold (float): The low threshold
+    highthreshold (float): The high threshold
+
+Returns:
+    tuple: A tuple containing the thresholded image, the weak edge value and the strong edge value
+"""
 def threshold(img, low_threshold=0.05, highthreshold=0.09):
     high_th = img.max() * highthreshold
     low_th = high_th * low_threshold
@@ -71,6 +110,18 @@ def threshold(img, low_threshold=0.05, highthreshold=0.09):
     
     return (res, weak, strong)
 
+"""
+Implements hysteresis on an image. This is used to remove weak edges that are not connected to strong edges.
+The result is a binary image with strong edges, which is the final step of the canny edge detection algorithm.
+
+Args:
+    img (np.array): The image to apply hysteresis on
+    weak (int): The value of weak edges
+    strong (int): The value of strong edges
+
+Returns:
+    np.array: The binary image with strong edges
+"""
 def hysteresis(img, weak=25, strong=255):
     M, N = img.shape  
     for i in range(1, M-1):
@@ -88,6 +139,15 @@ def hysteresis(img, weak=25, strong=255):
                     pass
     return img
 
+"""
+Runs the canny edge detection algorithm on an image.
+
+Args:
+    img (np.array): The image to detect edges on
+
+Returns:
+    np.array: The binary image with strong edges
+"""
 def canny(img):
     # Convert to grayscale according to how humans percieve color
     img = np.dot(img[...,:3], [0.2989, 0.5870, 0.1140])
